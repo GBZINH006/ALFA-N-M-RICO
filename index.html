@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
 <title>Organizador Alfanumérico Online</title>
-<meta name="description" content="Organize texto e números automaticamente. Exporte em PDF ou Excel. Visual premium interativo.">
+<meta name="description" content="Organize texto e números automaticamente. Exporte em PDF ou Excel. Visual premium interativo." />
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,7 +17,7 @@
 <style>
 :root {
   --bg: #020617;
-  --card: rgba(15,23,42,.8);
+  --card: rgba(15, 23, 42, 0.85);
   --border: #1e293b;
   --primary: #38bdf8;
   --secondary: #6366f1;
@@ -25,18 +25,18 @@
   --muted: #94a3b8;
 }
 
-/* ===== BASE ===== */
 * { box-sizing: border-box; }
+
 body {
   margin: 0;
   min-height: 100vh;
   font-family: 'Inter', sans-serif;
   color: var(--text);
-  background: radial-gradient(circle, #020617 0%, #000 80%);
-  overflow: hidden;
+  background: radial-gradient(circle at center, #020617 0%, #000 80%);
+  overflow-y: auto; /* ✅ SCROLL CORRIGIDO */
 }
 
-/* ===== GLOW ===== */
+/* Glow mouse */
 .glow {
   position: fixed;
   width: 600px;
@@ -44,36 +44,13 @@ body {
   background: radial-gradient(circle, rgba(56,189,248,.25), transparent 60%);
   pointer-events: none;
   transform: translate(-50%, -50%);
+  z-index: 0;
 }
 
-/* ===== ESTRELAS DO CLIQUE ===== */
-.star {
-  position: fixed;
-  background: white;
-  width: 6px;
-  height: 6px;
-  clip-path: polygon(
-    50% 0%, 61% 35%, 98% 35%, 
-    68% 57%, 79% 91%, 
-    50% 70%, 21% 91%, 
-    32% 57%, 2% 35%, 
-    39% 35%
-  );
-  filter: drop-shadow(0 0 8px rgba(255,255,255,.9));
-  pointer-events: none;
-  animation: fly 900ms ease-out forwards;
-}
-
-@keyframes fly {
-  to {
-    transform: translate(var(--dx), var(--dy)) scale(0) rotate(360deg);
-    opacity: 0;
-  }
-}
-
-/* ===== APP ===== */
+/* App */
 .app {
   position: relative;
+  z-index: 1;
   max-width: 860px;
   margin: 6vh auto;
   padding: 36px;
@@ -98,7 +75,10 @@ textarea {
 }
 
 .controls, .actions {
-  display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
 }
 
 select, button, label {
@@ -117,7 +97,12 @@ button.primary {
   border: none;
 }
 
-ul { list-style: none; padding: 0; margin-top: 24px; }
+ul {
+  list-style: none;
+  padding: 0;
+  margin-top: 24px;
+}
+
 li {
   background: var(--bg);
   border: 1px solid var(--border);
@@ -125,9 +110,7 @@ li {
   padding: 14px 18px;
 }
 
-footer { text-align: center; color: var(--muted); margin-top: 18px; }
-
-/* ===== MODAL V1 ===== */
+/* ===== MODAL ERRO ===== */
 .modal {
   position: fixed;
   inset: 0;
@@ -146,6 +129,12 @@ footer { text-align: center; color: var(--muted); margin-top: 18px; }
   backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   box-shadow: 0 40px 120px rgba(0,0,0,.6);
+  animation: pop .45s cubic-bezier(.16,1,.3,1);
+}
+
+@keyframes pop {
+  from { opacity: 0; transform: scale(.85); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 .modal-card h2 {
@@ -153,22 +142,14 @@ footer { text-align: center; color: var(--muted); margin-top: 18px; }
   text-align: center;
 }
 
-.modal-card ul {
-  margin: 16px 0;
-  list-style: none;
-  padding: 0;
+.modal-card p {
+  text-align: center;
+  line-height: 1.6;
 }
 
-.modal-card li {
-  padding: 8px 0;
-  border-bottom: 1px solid #1e293b;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.modal-card button {
   margin-top: 20px;
+  width: 100%;
 }
 </style>
 </head>
@@ -177,25 +158,17 @@ footer { text-align: center; color: var(--muted); margin-top: 18px; }
 
 <div class="glow" id="glow"></div>
 
-<!-- MODAL -->
-<div class="modal" id="modalV1">
+<!-- ⚠️ MODAL DE ERRO URGENTE -->
+<div class="modal" id="errorModal">
   <div class="modal-card">
-    <h2>🚀 Veja o que preparamos pra versão 1.0</h2>
-    <ul>
-      <li>✨ Interface premium com animações</li>
-      <li>🧮 Ordenação alfanumérica inteligente</li>
-      <li>📄 Exportação para PDF</li>
-      <li>📊 Exportação para Excel</li>
-      <li>⭐ Efeitos interativos com estrelas</li>
-      <li>💾 Mais controle e usabilidade</li>
-    </ul>
-
-    <div class="modal-actions">
-      <label>
-        <input type="checkbox" id="naoMostrar"> Não mostrar novamente
-      </label>
-      <button class="primary" onclick="fecharModal()">Começar</button>
-    </div>
+    <h2>⚠️ Instabilidade temporária</h2>
+    <p>
+      Identificamos um problema inesperado em uma das funcionalidades do app.<br><br>
+      Já estamos trabalhando na correção.<br><br>
+      Algumas ações podem não funcionar corretamente neste momento.<br><br>
+      Agradecemos sua paciência.
+    </p>
+    <button class="primary" onclick="fecharErro()">Entendi</button>
   </div>
 </div>
 
@@ -210,7 +183,6 @@ footer { text-align: center; color: var(--muted); margin-top: 18px; }
       <option value="asc">A → Z</option>
       <option value="desc">Z → A</option>
     </select>
-
     <label><input type="checkbox" id="dedupe"> Remover duplicados</label>
   </div>
 
@@ -223,72 +195,59 @@ footer { text-align: center; color: var(--muted); margin-top: 18px; }
   </div>
 
   <ul id="resultado"></ul>
-  <footer id="footer"></footer>
 </main>
 
 <script>
 /* Glow */
 document.addEventListener('mousemove', e => {
-  glow.style.left = e.clientX+'px';
-  glow.style.top = e.clientY+'px';
+  glow.style.left = e.clientX + 'px';
+  glow.style.top = e.clientY + 'px';
 });
 
-/* Stars click */
-document.addEventListener('click', e => {
-  for (let i = 0; i < 14; i++) {
-    const s = document.createElement('div');
-    s.className = 'star';
-    s.style.left = e.clientX+'px';
-    s.style.top = e.clientY+'px';
-    s.style.setProperty('--dx',(Math.random()-.5)*260+'px');
-    s.style.setProperty('--dy',(Math.random()-.5)*260+'px');
-    document.body.appendChild(s);
-    setTimeout(()=>s.remove(),900);
-  }
-});
-
-/* Modal */
-if (localStorage.getItem('naoMostrarV1')) {
-  modalV1.style.display = 'none';
-}
-
-function fecharModal() {
-  if (naoMostrar.checked) {
-    localStorage.setItem('naoMostrarV1', 'true');
-  }
-  modalV1.style.display = 'none';
+/* Modal erro */
+function fecharErro() {
+  document.getElementById('errorModal').style.display = 'none';
 }
 
 /* App */
 let dados = [];
+
 function organizar() {
-  let items = input.value.split(/\n+/).map(v=>v.trim()).filter(Boolean);
+  let items = input.value.split(/\n+/).map(v => v.trim()).filter(Boolean);
   if (dedupe.checked) items = [...new Set(items)];
-  items.sort((a,b)=> ordem.value==='asc'
+
+  items.sort((a,b)=> ordem.value === 'asc'
     ? a.localeCompare(b,'pt-BR',{numeric:true,sensitivity:'base'})
-    : b.localeCompare(a,'pt-BR',{numeric:true,sensitivity:'base'}));
+    : b.localeCompare(a,'pt-BR',{numeric:true,sensitivity:'base'})
+  );
+
   dados = items;
-  resultado.innerHTML='';
-  items.forEach(i=>resultado.innerHTML+=`<li>${i}</li>`);
-  footer.textContent=`${items.length} itens organizados`;
+  resultado.innerHTML = '';
+  items.forEach(i => resultado.innerHTML += `<li>${i}</li>`);
 }
 
-function copiar(){ navigator.clipboard.writeText(dados.join('\n')); }
-function baixarPDF(){
+function copiar() {
+  navigator.clipboard.writeText(dados.join('\n'));
+}
+
+function baixarPDF() {
   const { jsPDF } = window.jspdf;
-  const doc=new jsPDF();
+  const doc = new jsPDF();
   dados.forEach((v,i)=>doc.text(v,10,10+i*8));
   doc.save('organizacao.pdf');
 }
-function baixarExcel(){
-  const ws=XLSX.utils.aoa_to_sheet(dados.map(v=>[v]));
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,'Organizado');
-  XLSX.writeFile(wb,'organizacao.xlsx');
+
+function baixarExcel() {
+  const ws = XLSX.utils.aoa_to_sheet(dados.map(v=>[v]));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Organizado');
+  XLSX.writeFile(wb, 'organizacao.xlsx');
 }
-function limpar(){
-  input.value=''; resultado.innerHTML=''; footer.textContent=''; dados=[];
+
+function limpar() {
+  input.value=''; resultado.innerHTML=''; dados=[];
 }
 </script>
+
 </body>
 </html>
