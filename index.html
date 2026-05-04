@@ -1,94 +1,294 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Organizador Alfanumérico — Em manutenção</title>
-  <meta name="description" content="Nosso app está temporariamente em manutenção. Em breve voltaremos com melhorias." />
+<title>Organizador Alfanumérico Online</title>
+<meta name="description" content="Organize texto e números automaticamente. Exporte em PDF ou Excel. Visual premium interativo.">
 
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-  <style>
-    * { box-sizing: border-box; }
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-family: 'Inter', sans-serif;
-      background:
-        radial-gradient(1000px 500px at 70% 20%, #2563eb33, transparent),
-        linear-gradient(135deg, #020617, #0f172a);
-      color: #e5e7eb;
-    }
+<style>
+:root {
+  --bg: #020617;
+  --card: rgba(15,23,42,.8);
+  --border: #1e293b;
+  --primary: #38bdf8;
+  --secondary: #6366f1;
+  --text: #e5e7eb;
+  --muted: #94a3b8;
+}
 
-    .card {
-      max-width: 520px;
-      width: 100%;
-      padding: 40px;
-      border-radius: 28px;
-      text-align: center;
-      background: rgba(15, 23, 42, 0.8);
-      backdrop-filter: blur(18px);
-      box-shadow: 0 40px 100px rgba(0,0,0,.6);
-      animation: appear .7s ease;
-    }
+/* ===== BASE ===== */
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+  color: var(--text);
+  background: radial-gradient(circle, #020617 0%, #000 80%);
+  overflow: hidden;
+}
 
-    h1 {
-      margin: 0 0 12px;
-      font-size: 2rem;
-      font-weight: 700;
-    }
+/* ===== GLOW ===== */
+.glow {
+  position: fixed;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(56,189,248,.25), transparent 60%);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
 
-    p {
-      margin: 0;
-      font-size: 1rem;
-      color: #94a3b8;
-      line-height: 1.6;
-    }
+/* ===== ESTRELAS DO CLIQUE ===== */
+.star {
+  position: fixed;
+  background: white;
+  width: 6px;
+  height: 6px;
+  clip-path: polygon(
+    50% 0%, 61% 35%, 98% 35%, 
+    68% 57%, 79% 91%, 
+    50% 70%, 21% 91%, 
+    32% 57%, 2% 35%, 
+    39% 35%
+  );
+  filter: drop-shadow(0 0 8px rgba(255,255,255,.9));
+  pointer-events: none;
+  animation: fly 900ms ease-out forwards;
+}
 
-    .badge {
-      display: inline-block;
-      margin-bottom: 18px;
-      padding: 6px 14px;
-      border-radius: 999px;
-      font-size: .75rem;
-      font-weight: 600;
-      letter-spacing: .04em;
-      color: #020617;
-      background: linear-gradient(135deg, #22d3ee, #3b82f6);
-    }
+@keyframes fly {
+  to {
+    transform: translate(var(--dx), var(--dy)) scale(0) rotate(360deg);
+    opacity: 0;
+  }
+}
 
-    footer {
-      margin-top: 28px;
-      font-size: .75rem;
-      color: #64748b;
-    }
+/* ===== APP ===== */
+.app {
+  position: relative;
+  max-width: 860px;
+  margin: 6vh auto;
+  padding: 36px;
+  border-radius: 28px;
+  background: var(--card);
+  backdrop-filter: blur(22px);
+  border: 1px solid var(--border);
+  box-shadow: 0 50px 120px rgba(0,0,0,.65);
+}
 
-    @keyframes appear {
-      from { opacity: 0; transform: scale(.96); }
-      to   { opacity: 1; transform: scale(1); }
-    }
-  </style>
+h1 { text-align: center; font-size: 2.4rem; }
+p { text-align: center; color: var(--muted); margin-bottom: 24px; }
+
+textarea {
+  width: 100%;
+  min-height: 160px;
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.controls, .actions {
+  display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px;
+}
+
+select, button, label {
+  padding: 12px 18px;
+  border-radius: 999px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button.primary {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: #020617;
+  border: none;
+}
+
+ul { list-style: none; padding: 0; margin-top: 24px; }
+li {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 18px;
+}
+
+footer { text-align: center; color: var(--muted); margin-top: 18px; }
+
+/* ===== MODAL V1 ===== */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.65);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modal-card {
+  max-width: 520px;
+  padding: 28px;
+  border-radius: 24px;
+  background: var(--card);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  box-shadow: 0 40px 120px rgba(0,0,0,.6);
+}
+
+.modal-card h2 {
+  margin-top: 0;
+  text-align: center;
+}
+
+.modal-card ul {
+  margin: 16px 0;
+  list-style: none;
+  padding: 0;
+}
+
+.modal-card li {
+  padding: 8px 0;
+  border-bottom: 1px solid #1e293b;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+}
+</style>
 </head>
+
 <body>
 
-  <main class="card">
-    <span class="badge">EM MANUTENÇÃO</span>
-    <h1>App temporariamente indisponível</h1>
-    <p>
-      Estamos realizando melhorias no <strong>Organizador Alfanumérico</strong>.<br>
-      Aguarde alguns instantes — em breve voltaremos com novidades.
-    </p>
+<div class="glow" id="glow"></div>
 
-    <footer>
-      © 2026 — Organizador Alfanumérico
-    </footer>
-  </main>
+<!-- MODAL -->
+<div class="modal" id="modalV1">
+  <div class="modal-card">
+    <h2>🚀 Veja o que preparamos pra versão 1.0</h2>
+    <ul>
+      <li>✨ Interface premium com animações</li>
+      <li>🧮 Ordenação alfanumérica inteligente</li>
+      <li>📄 Exportação para PDF</li>
+      <li>📊 Exportação para Excel</li>
+      <li>⭐ Efeitos interativos com estrelas</li>
+      <li>💾 Mais controle e usabilidade</li>
+    </ul>
 
+    <div class="modal-actions">
+      <label>
+        <input type="checkbox" id="naoMostrar"> Não mostrar novamente
+      </label>
+      <button class="primary" onclick="fecharModal()">Começar</button>
+    </div>
+  </div>
+</div>
+
+<main class="app">
+  <h1>Organizador Alfanumérico</h1>
+  <p>Versão 1.0 · Visual Premium</p>
+
+  <textarea id="input"></textarea>
+
+  <div class="controls">
+    <select id="ordem">
+      <option value="asc">A → Z</option>
+      <option value="desc">Z → A</option>
+    </select>
+
+    <label><input type="checkbox" id="dedupe"> Remover duplicados</label>
+  </div>
+
+  <div class="actions">
+    <button class="primary" onclick="organizar()">Organizar</button>
+    <button onclick="copiar()">Copiar</button>
+    <button onclick="baixarPDF()">PDF</button>
+    <button onclick="baixarExcel()">Excel</button>
+    <button onclick="limpar()">Limpar</button>
+  </div>
+
+  <ul id="resultado"></ul>
+  <footer id="footer"></footer>
+</main>
+
+<script>
+/* Glow */
+document.addEventListener('mousemove', e => {
+  glow.style.left = e.clientX+'px';
+  glow.style.top = e.clientY+'px';
+});
+
+/* Stars click */
+document.addEventListener('click', e => {
+  for (let i = 0; i < 14; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    s.style.left = e.clientX+'px';
+    s.style.top = e.clientY+'px';
+    s.style.setProperty('--dx',(Math.random()-.5)*260+'px');
+    s.style.setProperty('--dy',(Math.random()-.5)*260+'px');
+    document.body.appendChild(s);
+    setTimeout(()=>s.remove(),900);
+  }
+});
+
+/* Modal */
+if (localStorage.getItem('naoMostrarV1')) {
+  modalV1.style.display = 'none';
+}
+
+function fecharModal() {
+  if (naoMostrar.checked) {
+    localStorage.setItem('naoMostrarV1', 'true');
+  }
+  modalV1.style.display = 'none';
+}
+
+/* App */
+let dados = [];
+function organizar() {
+  let items = input.value.split(/\n+/).map(v=>v.trim()).filter(Boolean);
+  if (dedupe.checked) items = [...new Set(items)];
+  items.sort((a,b)=> ordem.value==='asc'
+    ? a.localeCompare(b,'pt-BR',{numeric:true,sensitivity:'base'})
+    : b.localeCompare(a,'pt-BR',{numeric:true,sensitivity:'base'}));
+  dados = items;
+  resultado.innerHTML='';
+  items.forEach(i=>resultado.innerHTML+=`<li>${i}</li>`);
+  footer.textContent=`${items.length} itens organizados`;
+}
+
+function copiar(){ navigator.clipboard.writeText(dados.join('\n')); }
+function baixarPDF(){
+  const { jsPDF } = window.jspdf;
+  const doc=new jsPDF();
+  dados.forEach((v,i)=>doc.text(v,10,10+i*8));
+  doc.save('organizacao.pdf');
+}
+function baixarExcel(){
+  const ws=XLSX.utils.aoa_to_sheet(dados.map(v=>[v]));
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Organizado');
+  XLSX.writeFile(wb,'organizacao.xlsx');
+}
+function limpar(){
+  input.value=''; resultado.innerHTML=''; footer.textContent=''; dados=[];
+}
+</script>
 </body>
 </html>
